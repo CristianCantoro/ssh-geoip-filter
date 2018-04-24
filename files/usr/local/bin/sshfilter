@@ -15,16 +15,77 @@ if ! $SOURCED; then
   IFS=$'\n\t'
 fi
 
+#################### Configuration
 # UPPERCASE space-separated country codes to ACCEPT
 ALLOW_COUNTRIES='DE IT AT CH NL CA ES'
 
 # log facility, see man logger
 LOGDENY_FACILITY='authpriv.notice'
+####################
 
-if [ "$#" -ne 1 ]; then
-  echo "Usage:  $(basename "$0") <ip>" 1>&2
-  exit 0 # return true in case of config issue
+#################### Utils
+function usage() {
+  (>&2 echo \
+"Usage:
+  sshfilter [options] <ip>
+  sshfilter -h
+
+List interfaces with their IPv4 address, if none is specified list only the
+ones that are assigned an IPv4 address.
+
+If a interface with no address is specified then the string 'no address' is
+printed.
+
+Arguments:
+  <ip>          IP address to geolocate and (eventually) filter.
+
+Options:
+  -h            Show this help and exits.
+  -d            Print debug information.
+  -v            Print log information on console.
+
+Example:
+  sshfilter 8.8.8.8
+")
+}
+####################
+
+#################### Logging
+debug=false
+verbose=false
+while getopts ":dhv" opt; do
+  case $opt in
+    d)
+      debug=true
+      shift
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    v)
+      verbose=true
+      shift
+      ;;
+    \?)
+      (>&2 echo "Error: invalid option $1")
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if $verbose; then
+  function echoverbose() {
+    echo -en "[$(date '+%F_%k:%M:%S')][info]\\t"
+    echo "$@" 1>&2
+  }
+else
+  function echoverbose() { true; }
 fi
+####################
+
+if $debug; then  set -x; fi
 
 if [[ "$(echo "$1" | grep ':')" != "" ]] ; then
   country="$(/usr/bin/geoiplookup6 "$1"  | \
@@ -38,13 +99,17 @@ else
               head -n 1)"
 fi
 
-[[ $country = "IP Address not found" || $ALLOW_COUNTRIES =~ $country ]] \
-  && response="ALLOW" || response="DENY"
+[[ $country = 'IP Address not found' || $ALLOW_COUNTRIES =~ $country ]] \
+  && response='ALLOW' || response='DENY'
 
-if [[ "$response" == "ALLOW" ]] ; then
-  logger -p "$LOGDENY_FACILITY" "$response sshd connection from $1 ($country)"
+if [[ "$response" == 'ALLOW' ]] ; then
+  msg="$response sshd connection from $1 ($country)"
+  logger -p "$LOGDENY_FACILITY" "$msg"
+  echoverbose "$msg"
   exit 0
 else
-  logger -p "$LOGDENY_FACILITY" "$response sshd connection from $1 ($country)"
+  msg="$response sshd connection from $1 ($country)"
+  logger -p "$LOGDENY_FACILITY" "$msg"
+  echoverbose "$msg"
   exit 1
 fi
