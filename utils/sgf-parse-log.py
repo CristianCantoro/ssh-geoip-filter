@@ -2,7 +2,8 @@
 """Parse timestamps from log file to convert it to ISO.
 
 Usage:
-  sgf-parse-log.py [--tz TIMEZONE] [--time-format=TIME_FORMAT,]... [<logfile>]...
+  sgf-parse-log.py [--tz TIMEZONE] [--time-format=TIME_FORMAT]...
+                   [<logfile>]...
   sgf-parse-log.py (-h | --help)
   sgf-parse-log.py --version
 

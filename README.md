@@ -88,7 +88,8 @@ to ISO format, so they are easier to process.
 Parse timestamps from log file to convert it to ISO.
 
 Usage:
-  sgf-parse-log.py [--tz TIMEZONE] [--time-format=TIME_FORMAT,]... [<logfile>]...
+  sgf-parse-log.py [--tz TIMEZONE] [--time-format=TIME_FORMAT]...
+                   [<logfile>]...
   sgf-parse-log.py (-h | --help)
   sgf-parse-log.py --version
 
@@ -122,7 +123,8 @@ Apr 22 06:11:56 host root: DENY sshd connection from 122.226.181.164 (CN)
 
 * with parsed timestamps:
 ```
-$ tail /tmp/ssh/deny.sshd.log | ./sgf-parse-log.py --tz 'America/Toronto' --time-format 'YYYY MMM D HH:mm:ss'
+$ tail /tmp/ssh/deny.sshd.log | \
+   ./sgf-parse-log.py --tz 'America/Toronto' --time-format 'YYYY MMM D HH:mm:ss'
 2018-04-22T06:06:34-04:00 CN 119.249.54.217
 2018-04-22T06:06:35-04:00 CN 122.226.181.165
 2018-04-22T06:08:00-04:00 CN 119.249.54.217
