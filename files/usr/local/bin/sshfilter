@@ -102,14 +102,12 @@ fi
 [[ $country = 'IP Address not found' || $ALLOW_COUNTRIES =~ $country ]] \
   && response='ALLOW' || response='DENY'
 
+msg="$response sshd connection from $1 ($country)"
+logger -p "$LOG_FACILITY" "$msg"
+echoverbose "$msg"
+
 if [[ "$response" == 'ALLOW' ]] ; then
-  msg="$response sshd connection from $1 ($country)"
-  logger -p "$LOG_FACILITY" "$msg"
-  echoverbose "$msg"
   exit 0
 else
-  msg="$response sshd connection from $1 ($country)"
-  logger -p "$LOG_FACILITY" "$msg"
-  echoverbose "$msg"
   exit 1
 fi
