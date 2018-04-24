@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Source:
+# https://gist.github.com/jokey2k/a74f56955124880749e7
+# based on scripts from http://www.axllent.org/docs/view/ssh-geoip
+
+# Enhanced bash strict mode
+# https://balist.es/blog/2017/03/21/enhancing-the-unofficial-bash-strict-mode/
+# shellcheck disable=SC2128
+SOURCED=false && [ "$0" = "$BASH_SOURCE" ] || SOURCED=true
+
+if ! $SOURCED; then
+  set -euo pipefail
+  IFS=$'\n\t'
+fi
+
+# UPPERCASE space-separated country codes to ACCEPT
+ALLOW_COUNTRIES='DE IT AT CH NL CA ES'
+
+# log facility, see man logger
+LOGDENY_FACILITY='authpriv.notice'
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage:  $(basename "$0") <ip>" 1>&2
+  exit 0 # return true in case of config issue
+fi
+
+if [[ "$(echo "$1" | grep ':')" != "" ]] ; then
+  country="$(/usr/bin/geoiplookup6 "$1"  | \
+              awk -F ": " '{ print $2 }' | \
+              awk -F "," '{ print $1 }'  | \
+              head -n 1)"
+else
+  country="$(/usr/bin/geoiplookup "$1"   | \
+              awk -F ": " '{ print $2 }' | \
+              awk -F "," '{ print $1 }'  | \
+              head -n 1)"
+fi
+
+[[ $country = "IP Address not found" || $ALLOW_COUNTRIES =~ $country ]] \
+  && response="ALLOW" || response="DENY"
+
+if [[ "$response" == "ALLOW" ]] ; then
+  logger -p "$LOGDENY_FACILITY" "$response sshd connection from $1 ($country)"
+  exit 0
+else
+  logger -p "$LOGDENY_FACILITY" "$response sshd connection from $1 ($country)"
+  exit 1
+fi
