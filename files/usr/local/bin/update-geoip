@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
+
 # Enhanced bash strict mode
-# https://balist.es/blog/2017/03/21/enhancing-the-unofficial-bash-strict-mode/
 # shellcheck disable=SC2128
 SOURCED=false && [ "$0" = "$BASH_SOURCE" ] || SOURCED=true
 

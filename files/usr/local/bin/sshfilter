@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Source:
-# https://gist.github.com/jokey2k/a74f56955124880749e7
-# based on scripts from http://www.axllent.org/docs/view/ssh-geoip
+##############################################################################
+# This scripts is based on the following:
+#   * https://gist.github.com/jokey2k/a74f56955124880749e7
+#   * http://www.axllent.org/docs/view/ssh-geoip
+##############################################################################
 
 # Enhanced bash strict mode
 # https://balist.es/blog/2017/03/21/enhancing-the-unofficial-bash-strict-mode/

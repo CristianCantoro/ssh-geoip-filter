@@ -15,8 +15,5 @@
 # versions of Debian this has been the default.
 # ALL: PARANOID
 
-# Reject all sshd connection except those coming from whitelisted
-# countries.
-# See:
-# http://www.axllent.org/docs/view/ssh-geoip/
+# Reject all sshd connection that were not accepted previously.
 sshd: ALL

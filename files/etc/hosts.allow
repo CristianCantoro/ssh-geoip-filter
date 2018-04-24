@@ -8,8 +8,6 @@
 # daemon name. See rpcbind(8) and rpc.mountd(8) for further information.
 #
 
-# Reject all sshd connection except those coming from whitelisted
-# countries.
-# See:
-# http://www.axllent.org/docs/view/ssh-geoip/
+# Reject all sshd connection except those coming from whitelisted countries.
+# The following accepts connection from whitelisted countries.
 sshd: ALL: aclexec /usr/local/bin/sshfilter %a
