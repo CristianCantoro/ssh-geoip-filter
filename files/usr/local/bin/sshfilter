@@ -20,7 +20,7 @@ fi
 ALLOW_COUNTRIES='DE IT AT CH NL CA ES'
 
 # log facility, see man logger
-LOGDENY_FACILITY='authpriv.notice'
+LOG_FACILITY='authpriv.notice'
 ####################
 
 #################### Utils
@@ -104,12 +104,12 @@ fi
 
 if [[ "$response" == 'ALLOW' ]] ; then
   msg="$response sshd connection from $1 ($country)"
-  logger -p "$LOGDENY_FACILITY" "$msg"
+  logger -p "$LOG_FACILITY" "$msg"
   echoverbose "$msg"
   exit 0
 else
   msg="$response sshd connection from $1 ($country)"
-  logger -p "$LOGDENY_FACILITY" "$msg"
+  logger -p "$LOG_FACILITY" "$msg"
   echoverbose "$msg"
   exit 1
 fi
