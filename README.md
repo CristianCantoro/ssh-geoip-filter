@@ -5,13 +5,13 @@ Scripts to filter SSH logins based on IP address geolocation.
 
 These scripts were inspired by
 [Ralph Slooten at axllent.org](https://www.axllent.org/docs/view/ssh-geoip/)
-with modification from
+with modifications from
 [Markus Ullmann](https://gist.github.com/jokey2k/a74f56955124880749e7).
 
 These scripts have been tested on Ubuntu and Debian, but they should work
 on other Linux distrubtion as well, provided that you have available
-the necessary geoip binaries and data, i.e. the equivalent of `geoip-bin` --
-especially `geoiplookup` and `geoip-database`.
+the necessary geoip binaries and data, i.e. the equivalent of `geoip-bin`
+-- especially `geoiplookup` -- and `geoip-database`.
 
 
 ## Directories and files
