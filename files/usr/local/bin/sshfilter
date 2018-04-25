@@ -39,11 +39,7 @@ function usage() {
   sshfilter [options] <ip>
   sshfilter -h
 
-List interfaces with their IPv4 address, if none is specified list only the
-ones that are assigned an IPv4 address.
-
-If a interface with no address is specified then the string 'no address' is
-printed.
+Filter a connection based on the IP address geolocation.
 
 Arguments:
   <ip>          IP address to geolocate and (eventually) filter.
