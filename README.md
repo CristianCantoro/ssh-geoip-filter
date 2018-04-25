@@ -47,17 +47,22 @@ git clone git@github.com:CristianCantoro/ssh-geoip-filter.git
 3. Get into the repo directory: `cd ssh-geoip-filter`
 
 4. Copy:
+    * `files/etc/sshfilter.conf` to `/etc/sshfilter.conf`
     * `files/usr/local/bin/sshfilter` to `/usr/local/bin/sshfilter`
     * `files/usr/local/bin/update-geoip` to `/usr/local/bin/update-geoip`
+  (you will need administrative privilege to perform these copies)
 
-5. Update the geoip database, you will need administrative privileges because
-the database is saved in `/usr/share/GeoIP/`:
+5. Update the configuration file at `/etc/sshfilter.conf` and set the values
+of the variables `ALLOW_COUNTRIES` and `LOG_FACILITY`
+
+6. Update the geoip database, you will need administrative privileges to run
+this command because the database is saved in `/usr/share/GeoIP/`:
 ```
 $ sudo /usr/local/bin/update-geoip
 GeoIP successfully updated
 ```
 
-6. Test if `sshfilter` is working:
+7. Test if `sshfilter` is working:
 ```bash
 $ sshfilter -v 8.8.8.8
 [2018-04-24_14:15:45][info]	DENY sshd connection from 8.8.8.8 (US)
@@ -68,10 +73,10 @@ $ [sudo] tail -n1 /var/auth.log
 Apr 24 14:15:45 inara cristian: DENY sshd connection from 8.8.8.8 (US)
 ```
 
-7. Copy `files/etc/hosts.allow` and `files/etc/hosts.deny` to
+8. Copy `files/etc/hosts.allow` and `files/etc/hosts.deny` to
    `/etc/hosts.allow` and `/etc/hosts.deny` respectively
 
-8. Add a crontab job (as root) to update the geoip database:
+9. Add a crontab job (as root) to update the geoip database:
 ```bash
 (sudo crontab -l && echo '
 # Update GeoIP database every 15 days

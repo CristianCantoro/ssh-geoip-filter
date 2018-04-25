@@ -16,11 +16,20 @@ if ! $SOURCED; then
 fi
 
 #################### Configuration
-# UPPERCASE space-separated country codes to ACCEPT
-ALLOW_COUNTRIES='DE IT AT CH NL CA ES'
+# shellcheck disable=SC1091
+source /etc/sshfilter.conf
 
-# log facility, see man logger
-LOG_FACILITY='authpriv.notice'
+set +u
+if [ -z ${ALLOW_COUNTRIES+x} ]; then
+  (>&2 echo "Error: variable LOG_FACILITY is not set")
+  exit 1
+fi
+
+if [ -z ${LOG_FACILITY+x} ]; then
+  (>&2 echo "Error: variable LOG_FACILITY is not set")
+  exit 1
+fi
+set -u
 ####################
 
 #################### Utils
@@ -77,8 +86,8 @@ done
 
 if $verbose; then
   function echoverbose() {
-    echo -en "[$(date '+%F_%k:%M:%S')][info]\\t"
-    echo "$@" 1>&2
+    (>&2 echo -en "[$(date '+%F_%k:%M:%S')][info]\\t" )
+    (>&2 echo "$@" )
   }
 else
   function echoverbose() { true; }
@@ -86,6 +95,11 @@ fi
 ####################
 
 if $debug; then  set -x; fi
+
+if [ "$#" -ne 1 ]; then
+  usage
+  exit 1
+fi
 
 if [[ "$(echo "$1" | grep ':')" != "" ]] ; then
   country="$(/usr/bin/geoiplookup6 "$1"  | \
