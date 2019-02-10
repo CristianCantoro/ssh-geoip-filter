@@ -18,9 +18,9 @@ function finish {
 trap finish EXIT
 
 
-GEOIPDATZIP_FILENAME="GeoIP.dat.gz"
+GEOIPDATZIP_FILENAME="GeoLite2-Country.tar.gz"
 
-GEOIP_URL="https://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/"
+GEOIP_URL="https://geolite.maxmind.com/download/geoip/database/"
 GEOIP_URL+="$GEOIPDATZIP_FILENAME"
 
 GEOIPDAT_FILENAME="${GEOIPDATZIP_FILENAME%.*}"
