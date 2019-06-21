@@ -67,9 +67,9 @@ GeoIP successfully updated
 $ sshfilter -v 8.8.8.8
 [2018-04-24_14:15:45][info]	DENY sshd connection from 8.8.8.8 (US)
 ```
-You can also check the logs st `/var/auth.log`:
+You can also check the logs at `/var/log/auth.log`:
 ```bash
-$ [sudo] tail -n1 /var/auth.log
+$ [sudo] tail -n1 /var/log/auth.log
 Apr 24 14:15:45 inara cristian: DENY sshd connection from 8.8.8.8 (US)
 ```
 
