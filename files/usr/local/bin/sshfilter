@@ -15,54 +15,60 @@ if ! $SOURCED; then
   IFS=$'\n\t'
 fi
 
-#################### Configuration
-# shellcheck disable=SC1091
-source /etc/sshfilter.conf
+#################### Utils
+function check_file() {
+  local myfile="$1"
+  local option="$2"
 
-set +u
-if [ -z ${ALLOW_COUNTRIES+x} ]; then
-  (>&2 echo "Error: variable LOG_FACILITY is not set")
-  exit 1
-fi
+  if [[ ! -e "$myfile" ]]; then
+    (>&2 echo "Error in option '$option': $myfile is not a valid file.")
+    exit 1
+  fi
 
-if [ -z ${LOG_FACILITY+x} ]; then
-  (>&2 echo "Error: variable LOG_FACILITY is not set")
-  exit 1
-fi
-set -u
+}
 ####################
 
-#################### Utils
-function usage() {
+#################### Usage
+function short_usage() {
   (>&2 echo \
 "Usage:
-  sshfilter [options] <ip>
-  sshfilter -h
+  sshfilter [options] [-c <config>] <ip>
+  sshfilter -h")
+}
 
+function usage() {
+  short_usage
+  (>&2 echo \
+"
 Filter a connection based on the IP address geolocation.
 
 Arguments:
   <ip>          IP address to geolocate and (eventually) filter.
 
 Options:
-  -h            Show this help and exits.
   -d            Print debug information.
+  -c <config>   Configuration file [default: /etc/sshfilter.conf]
   -v            Print log information on console.
+  -h            Show this help and exits.
 
 Example:
-  sshfilter 8.8.8.8
-")
+  sshfilter 8.8.8.8")
 }
 ####################
 
 #################### Logging
 debug=false
 verbose=false
-while getopts ":dhv" opt; do
+
+config='/etc/sshfilter.conf'
+while getopts ":c:dhv" opt; do
   case $opt in
+    c)
+      check_file "$OPTARG" '-c'
+      config="$OPTARG"
+      ;;
     d)
       debug=true
-      shift
       ;;
     h)
       usage
@@ -70,11 +76,14 @@ while getopts ":dhv" opt; do
       ;;
     v)
       verbose=true
-      shift
       ;;
     \?)
       (>&2 echo "Error: invalid option $1")
       usage
+      exit 1
+      ;;
+    :)
+      (>&2 echo "Error.Option -$OPTARG requires an argument.")
       exit 1
       ;;
   esac
@@ -90,29 +99,65 @@ else
 fi
 ####################
 
-if $debug; then  set -x; fi
+#################### Configuration
+# shellcheck disable=SC1090,SC1091
+source "$config"
 
-if [ "$#" -ne 1 ]; then
-  usage
+if [ -z "${ALLOW_COUNTRIES+x}" ]; then
+  (>&2 echo "Error: variable ALLOW_COUNTRIES is not set")
   exit 1
 fi
 
-if [[ "$(echo "$1" | grep ':')" != "" ]] ; then
-  country="$(/usr/bin/geoiplookup6 "$1"  | \
-              awk -F ": " '{ print $2 }' | \
-              awk -F "," '{ print $1 }'  | \
-              head -n 1)"
-else
-  country="$(/usr/bin/geoiplookup "$1"   | \
-              awk -F ": " '{ print $2 }' | \
-              awk -F "," '{ print $1 }'  | \
-              head -n 1)"
+if [ -z "${LOG_FACILITY+x}" ]; then
+  (>&2 echo "Error: variable LOG_FACILITY is not set")
+  exit 1
+fi
+set -u
+####################
+
+if $debug; then  set -x; fi
+
+if (( "$#"-OPTIND < 0 )) ; then
+  (>&2 echo "Error. Argument <ip> is required.")
+  short_usage
+  exit 1
 fi
 
-[[ $country = 'IP Address not found' || $ALLOW_COUNTRIES =~ $country ]] \
-  && response='ALLOW' || response='DENY'
+# shift optional parameters
+shift $(( OPTIND - 1 ))
+ip="$1"
 
-msg="$response sshd connection from $1 ($country)"
+# deny connections by default
+response='DENY'
+
+# if ALLOW_IPS is set
+if [ -n "${ALLOW_IPS+x}" ]; then
+  # check IP
+  [[ $ALLOW_IPS =~ $1 ]] && response='ALLOW' || response='DENY'
+fi
+
+if [[ "$response" != 'ALLOW' ]]; then
+  if [[ "$(echo "$ip" | grep ':')" != "" ]] ; then
+    country="$(/usr/bin/geoiplookup6 "$1"  | \
+                awk -F ": " '{ print $2 }' | \
+                awk -F "," '{ print $1 }'  | \
+                head -n 1)"
+  else
+    country="$(/usr/bin/geoiplookup "$ip"   | \
+                awk -F ": " '{ print $2 }' | \
+                awk -F "," '{ print $1 }'  | \
+                head -n 1)"
+  fi
+
+  # check country
+  [[ $country = 'IP Address not found' || $ALLOW_COUNTRIES =~ $country ]] \
+    && response='ALLOW' || response='DENY'
+
+  msg="$response sshd connection from $ip ($country)"
+else
+  msg="$response sshd connection from $ip, whitelisted IP"
+fi
+
 logger -p "$LOG_FACILITY" "$msg"
 echoverbose "$msg"
 
