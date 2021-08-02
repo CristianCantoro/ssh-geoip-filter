@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+# Enhanced bash strict mode
+# shellcheck disable=SC2128
+SOURCED=false && [ "$0" = "$BASH_SOURCE" ] || SOURCED=true
+
+if ! $SOURCED; then
+  set -euo pipefail
+  IFS=$'\n\t'
+fi
+
+#################### help
+function short_usage() {
+  (>&2 echo \
+"Usage:
+  geoipupdate-log <logfile>
+  geoipupdate-log -h
+")
+}
+
+function usage() {
+  (>&2 short_usage )
+  (>&2 echo \
+"
+
+Launch geoipupdate and log the output to <logfile>.
+
+Options:
+  -h                Show this help and exits.
+
+Example:
+  geoipupdate-log /var/log/geoipupdate.log
+")
+}
+
+help_flag=false
+
+while getopts ":h" opt; do
+  case $opt in
+    h)
+      help_flag=true
+      ;;
+    \?)
+      (>&2 echo "Error. Invalid option: -$OPTARG")
+      exit 1
+      ;;
+    :)
+      (>&2 echo "Error.Option -$OPTARG requires an argument.")
+      exit 1
+      ;;
+  esac
+done
+
+if $help_flag; then
+  usage
+  exit 0
+fi
+##############################################################################
+
+# Shell Script: is mixing getopts with positional parameters possible?
+# https://stackoverflow.com/q/11742996/2377454
+numopt="$#"
+
+# parameter not specified
+if (( numopt-OPTIND < 0 )) ; then
+  (>&2 echo "Error: parameter <logfile> is required.")
+  short_usage
+  exit 1
+fi
+
+# unrecognized extra parameters not specified
+if (( numopt-OPTIND > 0 )) ; then
+  (>&2 echo "Error: unrecognized extra parameters specified.")
+  short_usage
+  exit 1
+fi
+
+# shellcheck disable=SC1091
+source /usr/local/lib/bashlog/log.sh
+
+# creates a logger called mylogger
+start_logging "$1" 'logger'
+
+logger_info 'Starting GeoIP update'
+geoipupdate -v 2>&1 | logger_info
+logger_info 'GeoIP update completed'
+
+exit 0

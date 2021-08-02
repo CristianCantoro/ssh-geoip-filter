@@ -1,5 +1,4 @@
-SSH geoip filter
-================
+# SSH geoip filter
 
 Scripts to filter SSH logins based on IP address geolocation.
 
@@ -11,21 +10,46 @@ with modifications from
 These scripts have been tested on Ubuntu and Debian, but they should work
 on other Linux distrubtion as well, provided that you have available
 the necessary geoip binaries and data, i.e. the equivalent of `geoip-bin`
--- especially `geoiplookup` -- and `geoip-database`.
+-- especially `geoiplookup` -- and `geoipupdate`.
 
+## GeoIP by MaxMind
+
+To be able to update your GeoIP database you need to register an account
+with MaxMind, see [MaxMind's docs on geoipupdate](https://dev.maxmind.com/geoip/geoipupdate/).
+
+You are advides need to install `geoipupdate` version `3.1.1` or superior,
+you can find the lastest version on [MaxMind's `geoipupdate` repo releases](https://github.com/maxmind/geoipupdate/releases).
+
+You will be able to download a sample configuration file for geoipupdate and
+then you will need to create a license key.
+
+Your configuration file `/etc/GeoIP.conf` should look like this:
+
+```plain
+# `AccountID` is from your MaxMind account.
+AccountID <account-id>
+
+# Replace YOUR_LICENSE_KEY_HERE with an active license key associated
+# with your MaxMind account.
+LicenseKey <license-key>
+
+# `EditionIDs` is from your MaxMind account.
+EditionIDs GeoLite2-ASN GeoLite2-City GeoLite2-Country
+```
 
 ## Directories and files
-```
+
+```plain
 .
 ├── files
-│   ├── etc
-│   │   ├── hosts.allow
-│   │   └── hosts.deny
-│   └── usr
-│       └── local
-│           └── bin
-│               ├── sshfilter
-│               └── update-geoip
+│   ├── etc
+│   │   ├── hosts.allow
+│   │   └── hosts.deny
+│   └── usr
+│       └── local
+│           └── bin
+│               ├── sshfilter
+│               └── update-geoip
 ├── LICENSE
 ├── README.md
 └── utils
@@ -35,11 +59,13 @@ the necessary geoip binaries and data, i.e. the equivalent of `geoip-bin`
 ## How to install
 
 1. Install geoip packages:
+
 ```bash
 apt install geoip-bin geoip-database
 ```
 
 2. Clone the repo:
+
 ```bash
 git clone git@github.com:CristianCantoro/ssh-geoip-filter.git
 ```
@@ -47,6 +73,7 @@ git clone git@github.com:CristianCantoro/ssh-geoip-filter.git
 3. Get into the repo directory: `cd ssh-geoip-filter`
 
 4. Copy:
+
     * `files/etc/sshfilter.conf` to `/etc/sshfilter.conf`
     * `files/usr/local/bin/sshfilter` to `/usr/local/bin/sshfilter`
     * `files/usr/local/bin/update-geoip` to `/usr/local/bin/update-geoip`
@@ -57,17 +84,21 @@ of the variables `ALLOW_COUNTRIES` and `LOG_FACILITY`
 
 6. Update the geoip database, you will need administrative privileges to run
 this command because the database is saved in `/usr/share/GeoIP/`:
-```
+
+```bash
 $ sudo /usr/local/bin/update-geoip
 GeoIP successfully updated
 ```
 
 7. Test if `sshfilter` is working:
+
 ```bash
 $ sshfilter -v 8.8.8.8
-[2018-04-24_14:15:45][info]	DENY sshd connection from 8.8.8.8 (US)
+[2018-04-24_14:15:45][info] DENY sshd connection from 8.8.8.8 (US)
 ```
+
 You can also check the logs at `/var/log/auth.log`:
+
 ```bash
 $ [sudo] tail -n1 /var/log/auth.log
 Apr 24 14:15:45 inara cristian: DENY sshd connection from 8.8.8.8 (US)
@@ -77,19 +108,22 @@ Apr 24 14:15:45 inara cristian: DENY sshd connection from 8.8.8.8 (US)
    `/etc/hosts.allow` and `/etc/hosts.deny` respectively
 
 9. Add a crontab job (as root) to update the geoip database:
+
 ```bash
-(sudo crontab -l && echo '
+$ (sudo crontab -l && echo '
 # Update GeoIP database every 15 days
-05  06  */15   *    *     /usr/local/bin/update-geoip >> /var/log/geoip.log
+05  06  */15   *    *     /usr/local/bin/geoipupdate-log /var/log/geoipupdate.log
 ') | sudo crontab -
 ```
 
 ## Utils
+
 The script `sgf-parse-log.py` parses timestamps from log file to convert them
 to ISO format, so they are easier to process.
 
 `sgf-parse-log.py`:
-```
+
+```plain
 Parse timestamps from log file to convert it to ISO.
 
 Usage:
@@ -112,8 +146,9 @@ Options:
 Example usage:
 
 * sample data:
-```
-$ tail deny.sshd.log 
+
+```bash
+$ tail deny.sshd.log
 Apr 22 06:06:34 host root: DENY sshd connection from 119.249.54.217 (CN)
 Apr 22 06:06:35 host root: DENY sshd connection from 122.226.181.165 (CN)
 Apr 22 06:08:00 host root: DENY sshd connection from 119.249.54.217 (CN)
@@ -127,7 +162,8 @@ Apr 22 06:11:56 host root: DENY sshd connection from 122.226.181.164 (CN)
 ```
 
 * with parsed timestamps:
-```
+
+```bash
 $ tail /tmp/ssh/deny.sshd.log | \
    ./sgf-parse-log.py --tz 'America/Toronto' --time-format 'YYYY MMM D HH:mm:ss'
 2018-04-22T06:06:34-04:00 CN 119.249.54.217
