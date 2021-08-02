@@ -11,8 +11,10 @@ Argiments:
   <logfile>       Log file to read [default: stdin].
 
 Options:
-  --tz TIMEZONE               Timezone of the timestamps in the log file [default: 'America/Toronto'].
-  --time-format=TIME_FORMAT   Time format of the timestamps in the log file  [default: 'YYYY MMM D HH:mm:ss'].
+  --tz TIMEZONE               Timezone of the timestamps in the log file
+                              [default: 'America/Toronto'].
+  --time-format=TIME_FORMAT   Time format of the timestamps in the log file
+                              [default: 'YYYY MMM D HH:mm:ss'].
                               It can be specified multiple times.
   -h --help                   Show this screen.
   --version                   Show version.
@@ -27,7 +29,7 @@ def read_input(logfile):
     if not logfile:
         lines = sys.stdin.readlines()
         for line in lines:
-          yield(line)
+            yield(line)
     else:
         for infile in arguments['<logfile>']:
             infp = open(infile, 'r')
@@ -54,7 +56,6 @@ if __name__ == '__main__':
         country = line[-1].strip('()')
         ip_address = line[-2]
 
-      
         timestamp = arrow.get('{year} {month} {day} {time}'.format(year=year,
                                                                    month=month,
                                                                    day=day,
@@ -62,4 +63,6 @@ if __name__ == '__main__':
                               [tf for tf in time_formats]
                               ).replace(tzinfo=dateutil.tz.gettz(tz))
 
-        print(timestamp, country, ip_address)
+        print(timestamp, country, ip_address, flush=True)
+
+    exit(0)
