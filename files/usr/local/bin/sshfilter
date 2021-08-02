@@ -101,7 +101,9 @@ fi
 
 #################### Configuration
 # shellcheck disable=SC1090,SC1091
-source "$config"
+if [ -f "$config" ]; then
+  source "$config"
+fi
 
 if [ -z "${ALLOW_COUNTRIES+x}" ]; then
   (>&2 echo "Error: variable ALLOW_COUNTRIES is not set")
